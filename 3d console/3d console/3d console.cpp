@@ -9,11 +9,9 @@
 
 int main()
 {
-
-	
-    std::cout << "Hello World!\n"; 
-
-	SetScreen(128, 64, 8, 8);
+	SetScreen(72, 128, 7); // minimum values: 45, 71, 6 ; recomnded: 72,128,7
+	_getch();
+	ClearScreen();
 	_getch();
 
 	/*while (1)
