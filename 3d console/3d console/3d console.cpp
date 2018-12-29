@@ -9,9 +9,14 @@
 
 int main()
 {
-	SetScreen(72, 128, 7); // minimum values: 45, 71, 6 ; recomnded: 72,128,7
-	_getch();
-	ClearScreen();
+	SetScreen(72, 128, 8); // minimum recomended values: 45, 71, 4 ; recomnded: 72,128,8
+	//_getch();
+	//ClearScreen();
+	//_getch();
+	//DrawLine(50, 50, 0, 0, 0x2588, 0x000f);
+	DrawTriangle(10, 10, 48, 14, 24, 64, 0x2588, 0x000f);
+	//DrawPoint(10, 10, 0x2588, 0x000f);
+	PushBuffer();
 	_getch();
 
 	/*while (1)

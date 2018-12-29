@@ -4,35 +4,16 @@
 #include <windows.h>
 #include <string.h>
 
-void DrawLine(short x, short y)
-{
-
-}
-
-void DrawTriangle(short x1, short y1, short x2, short y2, short x3, short y3)
-{
-
-}
-
-void FillTrinangle(short x1, short y1, short x2, short y2, short x3, short y3, char c)
-{
-
-}
-
-
 COORD screenSize;
 COORD dwBufferCoord;
-PSMALL_RECT writeRegion;
+SMALL_RECT writeRegion;
 
 HANDLE hStdOut;
 HWND hWindow;
 CONSOLE_SCREEN_BUFFER_INFO consoleBufInfo;
 CHAR_INFO *lpBuffer;
 DWORD charectersWriten;
-void PushBuffer()
-{
-	WriteConsoleOutput(hStdOut, lpBuffer, screenSize, screenSize, writeRegion);
-}
+
 
 void SetScreen(short h, short w, short cs )
 {
@@ -42,11 +23,16 @@ void SetScreen(short h, short w, short cs )
 	hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	hWindow = GetConsoleWindow();
 
+	writeRegion = { 0, 0, 1, 1 };
+	SetConsoleWindowInfo(hStdOut, TRUE, &writeRegion);
+
 	COORD bufferSize = { w,h };
 	
 	SetConsoleScreenBufferSize(hStdOut, bufferSize);
 	
 	SetConsoleActiveScreenBuffer(hStdOut);
+
+
 
 	CONSOLE_FONT_INFOEX fontInfo;
 	fontInfo.cbSize = sizeof(fontInfo);
@@ -60,6 +46,8 @@ void SetScreen(short h, short w, short cs )
 	SetConsoleMode(hStdOut, ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT);
 
 	SetWindowPos(hWindow, HWND_TOP, 0, 0, (int)w*cs+16, (int)h*cs+39, NULL);
+	writeRegion = {0, 0, (short)screenSize.X - 1, (short)screenSize.Y - 1 };
+	SetConsoleWindowInfo(hStdOut, TRUE, &writeRegion);
 
 	lpBuffer = new CHAR_INFO[screenSize.X * screenSize.Y]; // additional buffer
 	memset(lpBuffer, 0, sizeof(CHAR_INFO)*screenSize.X*screenSize.Y);
@@ -93,8 +81,74 @@ void SetScreen(short h, short w, short cs )
 	SetConsoleCursorPosition(hStdOut, cursorPos);
 }
 
+void DrawPoint(short x, short y, short c, short color)
+{
+	if (x >= 0 && x < screenSize.X  && y >= 0 && y < screenSize.Y)
+	{
+		lpBuffer[y*screenSize.X + x].Char.UnicodeChar = c;
+		lpBuffer[y*screenSize.X + x].Attributes = color;
+	}
+}
+
+void DrawLine(short x1, short y1, short x2, short y2, short c, short color)
+{
+	int px = x1, py = y1, dx = x2 - x1, dy = y2 - y1, adx = abs(dx), ady = abs(dy);
+
+	if (adx >= ady)
+	{
+		if (dx > 0)
+		{
+			for (px = x1; px < x2; px++)
+			{
+				py = y1 + dy * (px - x1) / dx;
+				DrawPoint(short(px), (short)py, c, color);
+			}
+		}
+		else {
+			for (px = x2; px < x1; px++)
+			{
+				py = y1 + dy * (px - x1) / dx;
+				DrawPoint(short(px), (short)py, c, color);
+			}
+		}
+	}
+	else {
+		if (dy > 0)
+		{
+			for (py = y1; py < y2; py++)
+			{
+				px = x1 + dx * (py - y1) / dy;
+				DrawPoint(short(px), (short)py, c, color);
+			}
+		}
+		else {
+			for (py = y2; py < y1; py++)
+			{
+				px = x1 + dx * (py - y1) / dy;
+				DrawPoint(short(px), (short)py, c, color);
+			}
+		}
+	}
+}
+
+void DrawTriangle(short x1, short y1, short x2, short y2, short x3, short y3, short c, short color)
+{
+	DrawLine(x1, y1, x2, y2, c, color);
+	DrawLine(x2, y2, x3, y3, c, color);
+	DrawLine(x3, y3, x1, y1, c, color);
+}
+
+void FillTrinangle(short x1, short y1, short x2, short y2, short x3, short y3, char c)
+{
+
+}
 
 void ClearScreen()
 {
 	FillConsoleOutputCharacter(hStdOut, (TCHAR)' ', screenSize.X*screenSize.Y, { 0,0 }, &charectersWriten);//solid
+}
+
+void PushBuffer()
+{
+	WriteConsoleOutput(hStdOut, lpBuffer, { screenSize.X, screenSize.Y }, { 0,0 }, &writeRegion);
 }
