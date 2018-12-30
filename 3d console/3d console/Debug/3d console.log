@@ -1,2 +1,4 @@
 ﻿  3d console.cpp
+c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\screenproc.h(177): warning C4244: аргумент: преобразование "float" в "short", возможна потеря данных
+c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\screenproc.h(195): warning C4244: аргумент: преобразование "float" в "short", возможна потеря данных
   3d console.vcxproj -> C:\Users\Jebbyk\Documents\GitHub\3D-console-graphics\3D console\Debug\3d console.exe

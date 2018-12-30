@@ -6,16 +6,16 @@
 #include <conio.h>
 #include <windows.h>
 #include "ScreenProc.h"
+#include "Geometry.h"
+
 
 int main()
 {
-	SetScreen(72, 128, 8); // minimum recomended values: 45, 71, 4 ; recomnded: 72,128,8
-	//_getch();
-	//ClearScreen();
-	//_getch();
-	//DrawLine(50, 50, 0, 0, 0x2588, 0x000f);
-	DrawTriangle(10, 10, 48, 14, 24, 64, 0x2588, 0x000f);
-	//DrawPoint(10, 10, 0x2588, 0x000f);
+	SetScreen(180, 320, 4); // minimum recomended values: 45, 71, 4 ; recomnded: 72,128,8
+	
+	DrawTriangle(10, 64, 48, 18, 24, 32, 0x2591, 0x000f);
+	FillTriangle(60, 64, 98, 18, 74, 32, 0x2588, 0x000f);
+	
 	PushBuffer();
 	_getch();
 

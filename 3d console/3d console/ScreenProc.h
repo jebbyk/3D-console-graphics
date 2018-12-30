@@ -53,7 +53,7 @@ void SetScreen(short h, short w, short cs )
 	memset(lpBuffer, 0, sizeof(CHAR_INFO)*screenSize.X*screenSize.Y);
 	
 
-	short pos = 0;
+	/*short pos = 0;
 	short step = h / 10;
 	FillConsoleOutputCharacter(hStdOut, 0x2588, 128 * step, { 0,pos }, &charectersWriten);//solid
 	pos += step;
@@ -72,7 +72,7 @@ void SetScreen(short h, short w, short cs )
 	FillConsoleOutputCharacter(hStdOut, 0x003a, 128 * step, { 0,pos }, &charectersWriten);// :
 	pos += step;
 	FillConsoleOutputCharacter(hStdOut, 0x02d1, 128 * step, { 0,pos }, &charectersWriten);// &&&&
-	pos += step;
+	pos += step;*/
 	
 
 	COORD cursorPos;
@@ -103,6 +103,7 @@ void DrawLine(short x1, short y1, short x2, short y2, short c, short color)
 				py = y1 + dy * (px - x1) / dx;
 				DrawPoint(short(px), (short)py, c, color);
 			}
+			DrawPoint(x2, y2, c, color);
 		}
 		else {
 			for (px = x2; px < x1; px++)
@@ -110,6 +111,7 @@ void DrawLine(short x1, short y1, short x2, short y2, short c, short color)
 				py = y1 + dy * (px - x1) / dx;
 				DrawPoint(short(px), (short)py, c, color);
 			}
+			DrawPoint(x1, y1, c, color);
 		}
 	}
 	else {
@@ -120,6 +122,7 @@ void DrawLine(short x1, short y1, short x2, short y2, short c, short color)
 				px = x1 + dx * (py - y1) / dy;
 				DrawPoint(short(px), (short)py, c, color);
 			}
+			DrawPoint(x2, y2, c, color);
 		}
 		else {
 			for (py = y2; py < y1; py++)
@@ -127,6 +130,7 @@ void DrawLine(short x1, short y1, short x2, short y2, short c, short color)
 				px = x1 + dx * (py - y1) / dy;
 				DrawPoint(short(px), (short)py, c, color);
 			}
+			DrawPoint(x1, y1, c, color);
 		}
 	}
 }
@@ -138,9 +142,60 @@ void DrawTriangle(short x1, short y1, short x2, short y2, short x3, short y3, sh
 	DrawLine(x3, y3, x1, y1, c, color);
 }
 
-void FillTrinangle(short x1, short y1, short x2, short y2, short x3, short y3, char c)
+void FillTriangle(short x1, short y1, short x2, short y2, short x3, short y3, short c, short color)
 {
+	if(y1 > y2)
+	{
+		short t = y1; y1 = y2; y2 = t;
+		t = x1; x1 = x2; x2 = t;
+	}
+	if (y1 > y3)
+	{
+		short t = y1; y1 = y3; y3 = t;
+		t = x1; x1 = x3; x3 = t;
+	}
+	if (y2 > y3)
+	{
+		short t = y2; y2 = y3; y3 = t;
+		t = x2; x2 = x3; x3 = t;
+	}
 
+	short triangleHeight = y3 - y1;
+	if (triangleHeight > 0)
+	{
+		short segmentHeight = y2 - y1;
+		if (segmentHeight > 0)
+		{
+			float pxA, pxB;
+			for (short py = y1; py <= y2; py++)
+			{
+				pxA = (float)(py - y1) / triangleHeight;
+				pxB = (float)(py - y1) / segmentHeight;
+
+				pxA = x1 + (x3 - x1)*pxA;
+				pxB = x1 + (x2 - x1)*pxB;
+				DrawLine(pxA, py, pxB, py, c, color);
+				/*if (pxA > pxB) std::swap(pxA, pxB);
+				for (short i = pxA; i <= pxB; i++)
+				{
+					DrawPoint(i, py, c, color);
+				}*/
+			}
+		}
+		segmentHeight = y3 - y2 + 1;
+		if (segmentHeight > 0)
+		{
+			float pxA, pxB;
+			for (short py = y2; py <= y3; py++)
+			{
+				pxA = (float)(py - y1) / triangleHeight;
+				pxB = (float)(py - y2) / segmentHeight;
+				pxA = x1 + (x3 - x1)*pxA;
+				pxB = x2 + (x3 - x2)*pxB;
+				DrawLine(pxA, py, pxB, py, c, color);
+			}
+		}
+	}
 }
 
 void ClearScreen()
