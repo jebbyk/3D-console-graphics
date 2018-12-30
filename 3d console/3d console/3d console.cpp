@@ -7,16 +7,166 @@
 #include <windows.h>
 #include "ScreenProc.h"
 #include "Geometry.h"
+#include <chrono>
+#include <math.h>
 
 
 int main()
 {
 	SetScreen(180, 320, 4); // minimum recomended values: 45, 71, 4 ; recomnded: 72,128,8
+
+	auto currentTime = std::chrono::steady_clock::now();
+	auto previousTime = std::chrono::steady_clock::now();
+	float sessionTime = 0;
+	float frameTime = 0;
+	float averageFrameTimes = 0;
+	short framesPerSeccond = 0;
+
+	wchar_t title[64];
+	float titleUpdateInterval = 0.3f;
+	float titleTimer = 0;
+	long framesCount = 0;
+
+	mesh basicCube;
+	basicCube.triangles = {
+	//front
+	{0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 0.0f},
+	{0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f},
+	//back
+	{0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    1.0f, 1.0f, 1.0f},
+	{0.0f, 0.0f, 1.0f,    1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f},
+	//right
+	{1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f},
+	{1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f},
+	//left
+	{0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    0.0f, 1.0f, 1.0f},
+	{0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 1.0f,    0.0f, 0.0f, 1.0f},
+	//top
+	{0.0f, 1.0f, 0.0f,    0.0f, 1.0f, 1.0f,    1.0f, 1.0f, 1.0f},
+	{0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f},
+	//down
+	{0.0f, 0.0f, 0.0f,    0.0f, 0.0f, 1.0f,    1.0f, 0.0f, 1.0f},
+	{0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 1.0f,    1.0f, 0.0f, 0.0f}
+	};
+
+	float nearPlane = 0.1f;
+	float farPlane = 1000.0f;
+	float fov = 60.0;
+	float aspectRatio = (float)screenHeight / (float)screenWidth;
+
+	float fovRad = 1.0f / tanf(fov*0.5f/180*3.14159f);
+
+	matrix4x4 projectionMatrix;
+
+	projectionMatrix.matrix[0][0] = aspectRatio * fovRad;
+	projectionMatrix.matrix[1][1] = fovRad;
+	projectionMatrix.matrix[2][2] = farPlane / (farPlane - nearPlane);
+	projectionMatrix.matrix[3][2] = (-farPlane * nearPlane) / (farPlane - nearPlane);
+	projectionMatrix.matrix[2][3] = 1.0f;
+	projectionMatrix.matrix[3][3] = 0.0f;
+
+	float angle = 0; 
+
+	while (1)
+	{
+		currentTime = std::chrono::steady_clock::now();
+		std::chrono::duration<float> elapsedTime = currentTime - previousTime;
+		previousTime = currentTime;
+		frameTime = elapsedTime.count();
+		framesCount++;
+		sessionTime += frameTime;
+		averageFrameTimes = sessionTime / framesCount;
+
+		float offset = sin(sessionTime*16)*2;
+		float offset2 = cos(sessionTime*16) * 2;
+		float offset3 = -cos(sessionTime*16) * 2;
+
+		matrix4x4 matRotZ, matRotX;
+
+		angle += 1.0f * frameTime;
+
+		matRotZ.matrix[0][0] = cosf(angle);
+		matRotZ.matrix[0][1] = sinf(angle);
+		matRotZ.matrix[1][0] = -sinf(angle);
+		matRotZ.matrix[1][1] = cosf(angle);
+		matRotZ.matrix[2][2] = 1;
+		matRotZ.matrix[3][3] = 1;
+
+		matRotX.matrix[0][0] = 1;
+		matRotX.matrix[1][1] = cosf(angle * 0.5f);
+		matRotX.matrix[1][2] = sinf(angle * 0.5f);
+		matRotX.matrix[2][1] = -sinf(angle * 0.5f);
+		matRotX.matrix[2][2] = cosf(angle * 0.5f);
+		matRotX.matrix[3][3] = 1;
+
+		for (triangle t : basicCube.triangles)
+		{
+			triangle triangleProjection, translatedTriangle, rotatedTriangleZ, rotatedTriangleZX;
+
+			MultMatrixVector(t.vertices[0], rotatedTriangleZ.vertices[0], matRotZ);
+			MultMatrixVector(t.vertices[1], rotatedTriangleZ.vertices[1], matRotZ);
+			MultMatrixVector(t.vertices[2], rotatedTriangleZ.vertices[2], matRotZ);
+
+			MultMatrixVector(rotatedTriangleZ.vertices[0], rotatedTriangleZX.vertices[0], matRotX);
+			MultMatrixVector(rotatedTriangleZ.vertices[1], rotatedTriangleZX.vertices[1], matRotX);
+			MultMatrixVector(rotatedTriangleZ.vertices[2], rotatedTriangleZX.vertices[2], matRotX);
+
+			translatedTriangle = rotatedTriangleZX;
+			translatedTriangle.vertices[0].z = rotatedTriangleZX.vertices[0].z + 3.0f;
+			translatedTriangle.vertices[1].z = rotatedTriangleZX.vertices[1].z + 3.0f;
+			translatedTriangle.vertices[2].z = rotatedTriangleZX.vertices[2].z + 3.0f;
+
+			MultMatrixVector(translatedTriangle.vertices[0], triangleProjection.vertices[0], projectionMatrix);
+			MultMatrixVector(translatedTriangle.vertices[1], triangleProjection.vertices[1], projectionMatrix);
+			MultMatrixVector(translatedTriangle.vertices[2], triangleProjection.vertices[2], projectionMatrix);
+
+			triangleProjection.vertices[0].x += 1.0f; triangleProjection.vertices[0].y += 1.0f;
+			triangleProjection.vertices[1].x += 1.0f; triangleProjection.vertices[1].y += 1.0f;
+			triangleProjection.vertices[2].x += 1.0f; triangleProjection.vertices[2].y += 1.0f;
+
+			triangleProjection.vertices[0].x *= 0.5f * (float)screenWidth;
+			triangleProjection.vertices[0].y *= 0.5f *(float)screenHeight;
+			triangleProjection.vertices[1].x *= 0.5f * (float)screenWidth;
+			triangleProjection.vertices[1].y *= 0.5f *(float)screenHeight;
+			triangleProjection.vertices[2].x *= 0.5f * (float)screenWidth;
+			triangleProjection.vertices[2].y *= 0.5f *(float)screenHeight;
+
+
+
+
+			
+			DrawTriangle(triangleProjection.vertices[0].x, triangleProjection.vertices[0].y,
+				triangleProjection.vertices[1].x, triangleProjection.vertices[1].y,
+				triangleProjection.vertices[2].x, triangleProjection.vertices[2].y,
+				0x2591, 0x000f);
+
+		}
+
+		/*for (int i = 0; i < 29; i++)
+		{
+			for (int j = 0; j < 53; j++)
+			{
+				
+				for (int n = 0; n < 20; n++)
+				{
+					FillTriangle(0 + j * 6, 2 + offset + i * 6, 4 + j * 6, 3 + offset3 + i * 6, 2 + j * 6, 5 + offset2 + i * 6, 0x2588, 0x000f);
+					//DrawTriangle(0 + j * 6, 2 + offset + i * 6, 4 + j * 6, 3 + offset3 + i * 6, 2 + j * 6, 5 + offset2 + i * 6, 0x2588, 0x000f);
+				}
+			}
+		}*/
+
+		PushBuffer();
+		titleTimer += frameTime;
+		if(titleTimer > titleUpdateInterval)
+		{
+			titleTimer = 0;
+			swprintf_s(title, 64, L"3D console test.   FPS: %4.1f   AVG: %4.2f    TRIS: %d", 1.0f / frameTime, 1.0f/averageFrameTimes, trisCount);
+			SetConsoleTitle(title);
+		}
+		ClearScreen();
+		trisCount = 0;
+	}
 	
-	DrawTriangle(10, 64, 48, 18, 24, 32, 0x2591, 0x000f);
-	FillTriangle(60, 64, 98, 18, 74, 32, 0x2588, 0x000f);
-	
-	PushBuffer();
 	_getch();
 
 	/*while (1)

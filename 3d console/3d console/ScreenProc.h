@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <string.h>
 
-COORD screenSize;
+short screenWidth, screenHeight;
 COORD dwBufferCoord;
 SMALL_RECT writeRegion;
 
@@ -15,11 +15,18 @@ CHAR_INFO *lpBuffer;
 DWORD charectersWriten;
 
 
+short *c;
+
+
+
+long trisCount;
+
+
 void SetScreen(short h, short w, short cs )
 {
 
-	screenSize.X = w;
-	screenSize.Y = h;
+	screenWidth = w;
+	screenHeight = h;
 	hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	hWindow = GetConsoleWindow();
 
@@ -46,11 +53,11 @@ void SetScreen(short h, short w, short cs )
 	SetConsoleMode(hStdOut, ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT);
 
 	SetWindowPos(hWindow, HWND_TOP, 0, 0, (int)w*cs+16, (int)h*cs+39, NULL);
-	writeRegion = {0, 0, (short)screenSize.X - 1, (short)screenSize.Y - 1 };
+	writeRegion = {0, 0, (short)screenWidth - 1, (short)screenHeight - 1 };
 	SetConsoleWindowInfo(hStdOut, TRUE, &writeRegion);
 
-	lpBuffer = new CHAR_INFO[screenSize.X * screenSize.Y]; // additional buffer
-	memset(lpBuffer, 0, sizeof(CHAR_INFO)*screenSize.X*screenSize.Y);
+	lpBuffer = new CHAR_INFO[screenWidth * screenHeight]; // additional buffer
+	memset(lpBuffer, 0, sizeof(CHAR_INFO)*screenWidth*screenHeight);
 	
 
 	/*short pos = 0;
@@ -83,10 +90,10 @@ void SetScreen(short h, short w, short cs )
 
 void DrawPoint(short x, short y, short c, short color)
 {
-	if (x >= 0 && x < screenSize.X  && y >= 0 && y < screenSize.Y)
+	if (x >= 0 && x < (short)screenWidth  && y >= 0 && y < (short)screenHeight)
 	{
-		lpBuffer[y*screenSize.X + x].Char.UnicodeChar = c;
-		lpBuffer[y*screenSize.X + x].Attributes = color;
+		lpBuffer[y*(short)screenWidth+ x].Char.UnicodeChar = c;
+		lpBuffer[y*screenWidth + x].Attributes = color;
 	}
 }
 
@@ -100,7 +107,7 @@ void DrawLine(short x1, short y1, short x2, short y2, short c, short color)
 		{
 			for (px = x1; px < x2; px++)
 			{
-				py = y1 + dy * (px - x1) / dx;
+				py = y1 + dy * (px - x1) / (float)dx;
 				DrawPoint(short(px), (short)py, c, color);
 			}
 			DrawPoint(x2, y2, c, color);
@@ -108,7 +115,7 @@ void DrawLine(short x1, short y1, short x2, short y2, short c, short color)
 		else {
 			for (px = x2; px < x1; px++)
 			{
-				py = y1 + dy * (px - x1) / dx;
+				py = y1 + dy * (px - x1) / (float)dx;
 				DrawPoint(short(px), (short)py, c, color);
 			}
 			DrawPoint(x1, y1, c, color);
@@ -119,7 +126,7 @@ void DrawLine(short x1, short y1, short x2, short y2, short c, short color)
 		{
 			for (py = y1; py < y2; py++)
 			{
-				px = x1 + dx * (py - y1) / dy;
+				px = x1 + dx * (py - y1) / (float)dy;
 				DrawPoint(short(px), (short)py, c, color);
 			}
 			DrawPoint(x2, y2, c, color);
@@ -127,7 +134,7 @@ void DrawLine(short x1, short y1, short x2, short y2, short c, short color)
 		else {
 			for (py = y2; py < y1; py++)
 			{
-				px = x1 + dx * (py - y1) / dy;
+				px = x1 + dx * (py - y1) / (float)dy;
 				DrawPoint(short(px), (short)py, c, color);
 			}
 			DrawPoint(x1, y1, c, color);
@@ -140,6 +147,7 @@ void DrawTriangle(short x1, short y1, short x2, short y2, short x3, short y3, sh
 	DrawLine(x1, y1, x2, y2, c, color);
 	DrawLine(x2, y2, x3, y3, c, color);
 	DrawLine(x3, y3, x1, y1, c, color);
+	trisCount++;
 }
 
 void FillTriangle(short x1, short y1, short x2, short y2, short x3, short y3, short c, short color)
@@ -161,12 +169,16 @@ void FillTriangle(short x1, short y1, short x2, short y2, short x3, short y3, sh
 	}
 
 	short triangleHeight = y3 - y1;
+	
 	if (triangleHeight > 0)
 	{
+		float pxA, pxB;
 		short segmentHeight = y2 - y1;
+		short i;
 		if (segmentHeight > 0)
 		{
-			float pxA, pxB;
+			float t;
+			
 			for (short py = y1; py <= y2; py++)
 			{
 				pxA = (float)(py - y1) / triangleHeight;
@@ -174,36 +186,50 @@ void FillTriangle(short x1, short y1, short x2, short y2, short x3, short y3, sh
 
 				pxA = x1 + (x3 - x1)*pxA;
 				pxB = x1 + (x2 - x1)*pxB;
-				DrawLine(pxA, py, pxB, py, c, color);
-				/*if (pxA > pxB) std::swap(pxA, pxB);
-				for (short i = pxA; i <= pxB; i++)
+				if (pxA > pxB) {
+					t = pxA; pxA = pxB; pxB = t;
+				}
+				for (i = pxA; i <= pxB; i++)
 				{
 					DrawPoint(i, py, c, color);
-				}*/
+				}
 			}
 		}
 		segmentHeight = y3 - y2 + 1;
 		if (segmentHeight > 0)
 		{
-			float pxA, pxB;
+			float t;
 			for (short py = y2; py <= y3; py++)
 			{
 				pxA = (float)(py - y1) / triangleHeight;
 				pxB = (float)(py - y2) / segmentHeight;
 				pxA = x1 + (x3 - x1)*pxA;
 				pxB = x2 + (x3 - x2)*pxB;
-				DrawLine(pxA, py, pxB, py, c, color);
+				if (pxA > pxB) {
+					 t = pxA; pxA = pxB; pxB = t;
+				}
+				for (i = pxA; i <= pxB; i++)
+				{
+					DrawPoint(i, py, c, color);
+				}
 			}
 		}
 	}
+
+	trisCount++;
 }
 
 void ClearScreen()
 {
-	FillConsoleOutputCharacter(hStdOut, (TCHAR)' ', screenSize.X*screenSize.Y, { 0,0 }, &charectersWriten);//solid
+	for (int i = screenWidth * screenHeight; i > 0; i--)
+	{
+		lpBuffer[i].Char.UnicodeChar = ' ';
+		lpBuffer[i].Attributes = 0x000f;
+	}
 }
+
 
 void PushBuffer()
 {
-	WriteConsoleOutput(hStdOut, lpBuffer, { screenSize.X, screenSize.Y }, { 0,0 }, &writeRegion);
+	WriteConsoleOutput(hStdOut, lpBuffer, { screenWidth, screenHeight }, { 0,0 }, &writeRegion);
 }
