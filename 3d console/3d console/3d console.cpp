@@ -13,7 +13,7 @@
 
 int main()
 {
-	SetScreen(180, 320, 4); // minimum recomended values: 45, 71, 4 ; recomnded: 72,128,8
+	SetScreen(108, 192, 8); // minimum recomended values: 24, 32, 2 ; recomnded: 72,128,8
 
 	auto currentTime = std::chrono::steady_clock::now();
 	auto previousTime = std::chrono::steady_clock::now();
@@ -27,27 +27,33 @@ int main()
 	float titleTimer = 0;
 	long framesCount = 0;
 
-	mesh basicCube;
+	mesh basicCube;// it's just a simple unitCube;
 	basicCube.triangles = {
 	//front
 	{0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 0.0f},
 	{0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f},
 	//back
-	{0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    1.0f, 1.0f, 1.0f},
-	{0.0f, 0.0f, 1.0f,    1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f},
+	{0.0f, 0.0f, 1.0f,    1.0f, 1.0f, 1.0f,    0.0f, 1.0f, 1.0f},
+	{0.0f, 0.0f, 1.0f,    1.0f, 0.0f, 1.0f,    1.0f, 1.0f, 1.0f},
 	//right
 	{1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f},
 	{1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f},
 	//left
-	{0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    0.0f, 1.0f, 1.0f},
-	{0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 1.0f,    0.0f, 0.0f, 1.0f},
+	{0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 1.0f,    0.0f, 1.0f, 0.0f},
+	{0.0f, 0.0f, 0.0f,    0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f},
 	//top
 	{0.0f, 1.0f, 0.0f,    0.0f, 1.0f, 1.0f,    1.0f, 1.0f, 1.0f},
 	{0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f},
 	//down
-	{0.0f, 0.0f, 0.0f,    0.0f, 0.0f, 1.0f,    1.0f, 0.0f, 1.0f},
-	{0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 1.0f,    1.0f, 0.0f, 0.0f}
+	{0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f},
+	{0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f,    1.0f, 0.0f, 1.0f}
 	};
+
+	vector3f lightDirection = { 1.0f, -1.0f, -0.2f };//light//////////////////////////////////////
+	float lightL = sqrtf(lightDirection.x * lightDirection.x + lightDirection.y*lightDirection.y + lightDirection.z* lightDirection.z);
+	lightDirection.x /= lightL; lightDirection.y /= lightL;  lightDirection.z /= lightL;
+
+	vector3f cameraVector = { 0,0,0 };
 
 	float nearPlane = 0.1f;
 	float farPlane = 1000.0f;
@@ -56,8 +62,7 @@ int main()
 
 	float fovRad = 1.0f / tanf(fov*0.5f/180*3.14159f);
 
-	matrix4x4 projectionMatrix;
-
+	matrix4x4 projectionMatrix;//screen projection matrix;
 	projectionMatrix.matrix[0][0] = aspectRatio * fovRad;
 	projectionMatrix.matrix[1][1] = fovRad;
 	projectionMatrix.matrix[2][2] = farPlane / (farPlane - nearPlane);
@@ -65,7 +70,7 @@ int main()
 	projectionMatrix.matrix[2][3] = 1.0f;
 	projectionMatrix.matrix[3][3] = 0.0f;
 
-	float angle = 0; 
+	float angle = 0; // just for testing rotating meshes
 
 	while (1)
 	{
@@ -77,9 +82,9 @@ int main()
 		sessionTime += frameTime;
 		averageFrameTimes = sessionTime / framesCount;
 
-		float offset = sin(sessionTime*16)*2;
+		/*float offset = sin(sessionTime*16)*2;// add some movement to benchmark triangles;
 		float offset2 = cos(sessionTime*16) * 2;
-		float offset3 = -cos(sessionTime*16) * 2;
+		float offset3 = -cos(sessionTime*16) * 2;*/
 
 		matrix4x4 matRotZ, matRotX;
 
@@ -99,47 +104,86 @@ int main()
 		matRotX.matrix[2][2] = cosf(angle * 0.5f);
 		matRotX.matrix[3][3] = 1;
 
+		//color testing;
+
+
+		for (int i = 0; i < screenHeight ; i++)
+		{
+			for (int j = 0; j < screenWidth; j++)
+			{
+				DrawPoint(j, i, IntanceTo10Levels((float)i/screenHeight), 0x000f);
+			}
+		}
+
 		for (triangle t : basicCube.triangles)
 		{
 			triangle triangleProjection, translatedTriangle, rotatedTriangleZ, rotatedTriangleZX;
 
-			MultMatrixVector(t.vertices[0], rotatedTriangleZ.vertices[0], matRotZ);
+			MultMatrixVector(t.vertices[0], rotatedTriangleZ.vertices[0], matRotZ);//rotate mesh over z;
 			MultMatrixVector(t.vertices[1], rotatedTriangleZ.vertices[1], matRotZ);
 			MultMatrixVector(t.vertices[2], rotatedTriangleZ.vertices[2], matRotZ);
 
-			MultMatrixVector(rotatedTriangleZ.vertices[0], rotatedTriangleZX.vertices[0], matRotX);
+			MultMatrixVector(rotatedTriangleZ.vertices[0], rotatedTriangleZX.vertices[0], matRotX);// rotate mesh over X;
 			MultMatrixVector(rotatedTriangleZ.vertices[1], rotatedTriangleZX.vertices[1], matRotX);
 			MultMatrixVector(rotatedTriangleZ.vertices[2], rotatedTriangleZX.vertices[2], matRotX);
 
 			translatedTriangle = rotatedTriangleZX;
-			translatedTriangle.vertices[0].z = rotatedTriangleZX.vertices[0].z + 3.0f;
+			translatedTriangle.vertices[0].z = rotatedTriangleZX.vertices[0].z + 3.0f;// translate it from camera position;
 			translatedTriangle.vertices[1].z = rotatedTriangleZX.vertices[1].z + 3.0f;
 			translatedTriangle.vertices[2].z = rotatedTriangleZX.vertices[2].z + 3.0f;
 
-			MultMatrixVector(translatedTriangle.vertices[0], triangleProjection.vertices[0], projectionMatrix);
-			MultMatrixVector(translatedTriangle.vertices[1], triangleProjection.vertices[1], projectionMatrix);
-			MultMatrixVector(translatedTriangle.vertices[2], triangleProjection.vertices[2], projectionMatrix);
+			vector3f normal, line1, line2;//normal of triangle
+			line1.x = translatedTriangle.vertices[1].x - translatedTriangle.vertices[0].x;
+			line1.y = translatedTriangle.vertices[1].y - translatedTriangle.vertices[0].y;
+			line1.z = translatedTriangle.vertices[1].z - translatedTriangle.vertices[0].z; 
 
-			triangleProjection.vertices[0].x += 1.0f; triangleProjection.vertices[0].y += 1.0f;
-			triangleProjection.vertices[1].x += 1.0f; triangleProjection.vertices[1].y += 1.0f;
-			triangleProjection.vertices[2].x += 1.0f; triangleProjection.vertices[2].y += 1.0f;
+			line2.x = translatedTriangle.vertices[2].x - translatedTriangle.vertices[0].x;
+			line2.y = translatedTriangle.vertices[2].y - translatedTriangle.vertices[0].y;
+			line2.z = translatedTriangle.vertices[2].z - translatedTriangle.vertices[0].z;
 
-			triangleProjection.vertices[0].x *= 0.5f * (float)screenWidth;
-			triangleProjection.vertices[0].y *= 0.5f *(float)screenHeight;
-			triangleProjection.vertices[1].x *= 0.5f * (float)screenWidth;
-			triangleProjection.vertices[1].y *= 0.5f *(float)screenHeight;
-			triangleProjection.vertices[2].x *= 0.5f * (float)screenWidth;
-			triangleProjection.vertices[2].y *= 0.5f *(float)screenHeight;
+			normal.x = line1.y*line2.z - line1.z*line2.y;
+			normal.y = line1.z*line2.x - line1.x*line2.z;
+			normal.z = line1.x*line2.y - line1.y*line2.x;
+
+			float normalLength = sqrtf(normal.x*normal.x + normal.y*normal.y + normal.z*normal.z);
+			normal.x /= normalLength; normal.y /= normalLength; normal.z /= normalLength;
+
+			float dotProduct = normal.x*(translatedTriangle.vertices[0].x - cameraVector.x);
+			dotProduct += normal.y * (translatedTriangle.vertices[0].y - cameraVector.y);
+			dotProduct += normal.z * (translatedTriangle.vertices[0].z - cameraVector.z);
+
+			if (dotProduct < 0.0f)
+			{
+				//projection process;
+				MultMatrixVector(translatedTriangle.vertices[0], triangleProjection.vertices[0], projectionMatrix);
+				MultMatrixVector(translatedTriangle.vertices[1], triangleProjection.vertices[1], projectionMatrix);
+				MultMatrixVector(translatedTriangle.vertices[2], triangleProjection.vertices[2], projectionMatrix);
+
+				triangleProjection.vertices[0].x += 1.0f; triangleProjection.vertices[0].y += 1.0f;
+				triangleProjection.vertices[1].x += 1.0f; triangleProjection.vertices[1].y += 1.0f;
+				triangleProjection.vertices[2].x += 1.0f; triangleProjection.vertices[2].y += 1.0f;
+
+				triangleProjection.vertices[0].x *= 0.5f * (float)screenWidth;
+				triangleProjection.vertices[0].y *= 0.5f *(float)screenHeight;
+				triangleProjection.vertices[1].x *= 0.5f * (float)screenWidth;
+				triangleProjection.vertices[1].y *= 0.5f *(float)screenHeight;
+				triangleProjection.vertices[2].x *= 0.5f * (float)screenWidth;
+				triangleProjection.vertices[2].y *= 0.5f *(float)screenHeight;
+
+				float ldp = normal.x*lightDirection.x + normal.y * lightDirection.y + normal.z * lightDirection.z;
+				if (ldp < 0) ldp = 0;
+				ldp += 0.10;// ambient light;
 
 
-
-
-			
-			DrawTriangle(triangleProjection.vertices[0].x, triangleProjection.vertices[0].y,
-				triangleProjection.vertices[1].x, triangleProjection.vertices[1].y,
-				triangleProjection.vertices[2].x, triangleProjection.vertices[2].y,
-				0x2591, 0x000f);
-
+				FillTriangle(triangleProjection.vertices[0].x, triangleProjection.vertices[0].y,
+					triangleProjection.vertices[1].x, triangleProjection.vertices[1].y,
+					triangleProjection.vertices[2].x, triangleProjection.vertices[2].y,
+					IntanceTo10Levels(ldp), 0x000f);
+				/*DrawTriangle(triangleProjection.vertices[0].x, triangleProjection.vertices[0].y,
+					triangleProjection.vertices[1].x, triangleProjection.vertices[1].y,
+					triangleProjection.vertices[2].x, triangleProjection.vertices[2].y,
+					' ', 0x000f);*/
+			}
 		}
 
 		/*for (int i = 0; i < 29; i++)
@@ -155,8 +199,9 @@ int main()
 			}
 		}*/
 
-		PushBuffer();
-		titleTimer += frameTime;
+		PushBuffer();//show builded screen;
+
+		titleTimer += frameTime;//update rendering information
 		if(titleTimer > titleUpdateInterval)
 		{
 			titleTimer = 0;
