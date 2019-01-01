@@ -2,6 +2,10 @@
 
 #include <vector>
 #include <list>
+#include <string.h>
+#include <iostream>
+#include  <fstream>
+#include <strstream>
 
 struct vector3f {
 	float x, y, z;
@@ -12,6 +16,42 @@ struct triangle{
 
 struct mesh {
 	std::vector<triangle> triangles;
+
+	bool LoadFromObjFile(std::string fileName)
+	{
+		std::ifstream f(fileName);
+		if (!f.is_open())
+			return false;
+
+		std::vector<vector3f> vertices;
+
+		while (!f.eof())
+		{
+			char line[128];
+			f.getline(line, 128);
+
+			std::strstream s;
+			s << line;
+
+			char junk;
+
+			if (line[0] == 'v')
+			{
+				vector3f v;
+				s >> junk >> v.x >> v.y >> v.z;
+				vertices.push_back(v);
+			}
+
+			if (line[0] == 'f')
+			{
+				int i[3];//vertices indexes
+				s >> junk >> i[0] >> i[1] >> i[2];
+				triangles.push_back({ vertices[i[0] - 1], vertices[i[1] - 1], vertices[i[2] - 1] });
+			}
+		}
+
+		return true;
+	}
 };
 
 struct matrix4x4 {

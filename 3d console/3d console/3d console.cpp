@@ -28,7 +28,7 @@ int main()
 	long framesCount = 0;
 
 	mesh basicCube;// it's just a simple unitCube;
-	basicCube.triangles = {
+	/*basicCube.triangles = {
 	//front
 	{0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 0.0f},
 	{0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f},
@@ -47,11 +47,14 @@ int main()
 	//down
 	{0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f},
 	{0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f,    1.0f, 0.0f, 1.0f}
-	};
+	};*/
 
-	vector3f lightDirection = { 1.0f, -1.0f, -0.2f };//light//////////////////////////////////////
+	basicCube.LoadFromObjFile("SpaceFighter3.obj");
+
+	vector3f lightDirection = { 0.8f, -0.8f, -1.0f };//light//////////////////////////////////////
 	float lightL = sqrtf(lightDirection.x * lightDirection.x + lightDirection.y*lightDirection.y + lightDirection.z* lightDirection.z);
 	lightDirection.x /= lightL; lightDirection.y /= lightL;  lightDirection.z /= lightL;
+	
 
 	vector3f cameraVector = { 0,0,0 };
 
@@ -82,9 +85,14 @@ int main()
 		sessionTime += frameTime;
 		averageFrameTimes = sessionTime / framesCount;
 
-		/*float offset = sin(sessionTime*16)*2;// add some movement to benchmark triangles;
-		float offset2 = cos(sessionTime*16) * 2;
-		float offset3 = -cos(sessionTime*16) * 2;*/
+		float offset = sin(sessionTime);// add some movement to benchmark triangles;
+		float lightIntancity =  1+offset;
+		float offset2 = cos(sessionTime*2);
+		float offset3 = -sin(sessionTime*2);
+
+		/*-lightDirection.x = offset;
+		lightDirection.y = offset2;
+		lightDirection.z = offset3;*/
 
 		matrix4x4 matRotZ, matRotX;
 
@@ -171,6 +179,7 @@ int main()
 				triangleProjection.vertices[2].y *= 0.5f *(float)screenHeight;
 
 				float ldp = normal.x*lightDirection.x + normal.y * lightDirection.y + normal.z * lightDirection.z;
+				ldp *= lightIntancity;
 				if (ldp < 0) ldp = 0;
 				ldp += 0.10;// ambient light;
 

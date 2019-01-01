@@ -83,11 +83,11 @@ void DrawLine(short x1, short y1, short x2, short y2, short c, short color)
 {
 	int px = x1, py = y1, dx = x2 - x1, dy = y2 - y1, adx = abs(dx), ady = abs(dy);
 
-	if (adx >= ady)
+	if (adx >= ady)//compare deltas and choose the biggest one
 	{
-		if (dx > 0)
+		if (dx > 0)//just for drawing from left to right
 		{
-			for (px = x1; px < x2; px++)
+			for (px = x1; px < x2; px++)//something like per column integrating
 			{
 				py = y1 + dy * (px - x1) / (float)dx;
 				DrawPoint(short(px), (short)py, c, color);
@@ -129,7 +129,7 @@ void DrawTriangle(short x1, short y1, short x2, short y2, short x3, short y3, sh
 	DrawLine(x1, y1, x2, y2, c, color);
 	DrawLine(x2, y2, x3, y3, c, color);
 	DrawLine(x3, y3, x1, y1, c, color);
-	trisCount++;
+	trisCount++;//debuging  thing
 }
 
 void FillTriangle(short x1, short y1, short x2, short y2, short x3, short y3, short c, short color)
@@ -170,7 +170,7 @@ void FillTriangle(short x1, short y1, short x2, short y2, short x3, short y3, sh
 				pxB = x1 + (x2 - x1)*pxB;
 				if (pxA > pxB) {
 					t = pxA; pxA = pxB; pxB = t;
-				}
+				}//draw horizintal line from left point to right point
 				for (i = pxA; i <= pxB; i++)
 				{
 					DrawPoint(i, py, c, color);
@@ -211,7 +211,7 @@ void ClearScreen()
 	}
 }
 
-short IntanceTo5Levels(float intancity)
+short IntanceTo5Levels(float intancity)//converts value between 0 & 1 to specified char simbol
 {
 	short c;
 	if (intancity < 0.2f) c = ' ';
@@ -229,8 +229,9 @@ short IntanceTo5Levels(float intancity)
 	}
 	return c;
 }
-
-short IntanceTo10Levels(float intance)//It's strongly recomended to use with 8px pixelSize or grate;
+//It's strongly recomended to use with 8px pixelSize or grater cause of wrong small font antialiasing;
+//or use "to 5 levels" convertion
+short IntanceTo10Levels(float intance)
 {
 	short c;
 
