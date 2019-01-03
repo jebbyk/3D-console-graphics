@@ -24,7 +24,6 @@ long trisCount;
 
 void SetScreen(short h, short w, short cs )
 {
-
 	screenWidth = w;
 	screenHeight = h;
 	hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -34,11 +33,8 @@ void SetScreen(short h, short w, short cs )
 	SetConsoleWindowInfo(hStdOut, TRUE, &writeRegion);
 
 	COORD bufferSize = { w,h };
-	
 	SetConsoleScreenBufferSize(hStdOut, bufferSize);//setting up char buffer of console
-	
 	SetConsoleActiveScreenBuffer(hStdOut);
-
 
 	//setting up font
 	CONSOLE_FONT_INFOEX fontInfo;
@@ -60,9 +56,6 @@ void SetScreen(short h, short w, short cs )
 	lpBuffer = new CHAR_INFO[screenWidth * screenHeight]; // additional buffer for fasest draving;
 	memset(lpBuffer, 0, sizeof(CHAR_INFO)*screenWidth*screenHeight);
 	
-
-	
-
 	COORD cursorPos;
 	cursorPos.X = 0;
 	cursorPos.Y = 0;
