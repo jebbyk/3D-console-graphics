@@ -84,9 +84,23 @@ int main()
 		//color testing;
 			/*for (int i = 0; i < screenHeight; i++)
 			{
-				DrawPoint(j, i, IntanceTo10Levels((float)i / screenHeight), 0x000f);
-			}
-		}
+				for (int j = 0; j < screenWidth; j++)
+				{
+					DrawPoint(j, i, IntanceTo10Levels((float)i / screenHeight), 0x000f);
+				}
+			}*/
+			
+
+			if (keysInfo[KEY_FRONT].held) cameraVector += LookDir * frameTime*3.0f;
+			if (keysInfo[KEY_BACK].held) cameraVector -= LookDir * frameTime*3.0f;
+
+			if (keysInfo[KEY_LEFT].held) cameraVector.x -= 3.0f * frameTime;
+			if (keysInfo[KEY_RIGHT].held) cameraVector.x += 3.0f * frameTime;
+			if (keysInfo[UP_ARROW].held) cameraVector.y -= 3.0f * frameTime;
+			if (keysInfo[DOWN_ARROW].held) cameraVector.y += 3.0f * frameTime;
+
+			if (keysInfo[RIGHT_ARROW].held) yaw -= 2.0f * frameTime;
+			if (keysInfo[LEFT_ARROW].held) yaw += 2.0f * frameTime;
 
 		for (triangle t : model.triangles)
 		{
