@@ -12,6 +12,7 @@ struct vector3f {
 };
 struct triangle {
 	vector3f vertices[3];
+	float color;
 };
 
 struct mesh {
@@ -46,7 +47,7 @@ struct mesh {
 			{
 				int i[3];//vertices indexes
 				s >> junk >> i[0] >> i[1] >> i[2];
-				triangles.push_back({ vertices[i[0] - 1], vertices[i[1] - 1], vertices[i[2] - 1] });
+				triangles.push_back({ vertices[i[0] - 1], vertices[i[1] - 1], vertices[i[2] - 1] } );
 			}
 		}
 

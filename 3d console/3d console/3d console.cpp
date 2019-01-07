@@ -9,11 +9,16 @@
 #include "Geometry.h"
 #include <chrono>
 #include <math.h>
+#include <algorithm>
 
 
 int main()
 {
-	SetScreen(180, 320, 4); // minimum recomended values: 24, 32, 2 ; recomnded: 72,128,8
+	/*
+	recomended resolutions for 1600x900
+	(108,199,8)(144, 265, 6)(173, 318, 5)(216, 398, 4)(288, 530, 3)(432, 796, 2)
+	*/
+	SetScreen(108, 199, 8);
 
 	auto currentTime = std::chrono::steady_clock::now();
 	auto previousTime = std::chrono::steady_clock::now();
@@ -51,7 +56,7 @@ int main()
 
 	basicCube.LoadFromObjFile("SpaceFighter3.obj");
 
-	vector3f lightDirection = { 0.8f, -0.8f, -1.0f };//light//////////////////////////////////////
+	vector3f lightDirection = { 1.0f, -1.0f, -0.5f };//light//////////////////////////////////////
 	float lightL = sqrtf(lightDirection.x * lightDirection.x + lightDirection.y*lightDirection.y + lightDirection.z* lightDirection.z);
 	lightDirection.x /= lightL; lightDirection.y /= lightL;  lightDirection.z /= lightL;
 
@@ -86,7 +91,7 @@ int main()
 		averageFrameTimes = sessionTime / framesCount;
 
 		float offset = sin(sessionTime);// add some movement to benchmark triangles;
-		float lightIntancity = 1 + offset;
+		float lightIntancity = 1;
 		float offset2 = cos(sessionTime * 2);
 		float offset3 = -sin(sessionTime * 2);
 
@@ -96,7 +101,7 @@ int main()
 
 		matrix4x4 matRotZ, matRotX;
 
-		angle += 1.0f * frameTime;
+		angle += 0.5f * frameTime;
 
 		matRotZ.matrix[0][0] = cosf(angle);
 		matRotZ.matrix[0][1] = sinf(angle);
@@ -113,15 +118,15 @@ int main()
 		matRotX.matrix[3][3] = 1;
 
 		//color testing;
-
-
 		for (int i = 0; i < screenHeight; i++)
 		{
 			for (int j = 0; j < screenWidth; j++)
 			{
-				DrawPoint(j, i, IntanceTo10Levels((float)i / screenHeight), 0x000f);
+				DrawPoint(j, i, IntanceTo14Levels((float)i / screenHeight).Char.UnicodeChar, IntanceTo14Levels((float)i / screenHeight).Attributes);
 			}
 		}
+
+		std::vector<triangle> trianglesToRaster;
 
 		for (triangle t : basicCube.triangles)
 		{
@@ -136,9 +141,9 @@ int main()
 			MultMatrixVector(rotatedTriangleZ.vertices[2], rotatedTriangleZX.vertices[2], matRotX);
 
 			translatedTriangle = rotatedTriangleZX;
-			translatedTriangle.vertices[0].z = rotatedTriangleZX.vertices[0].z + 6.0f;// translate it from camera position;
-			translatedTriangle.vertices[1].z = rotatedTriangleZX.vertices[1].z + 6.0f;
-			translatedTriangle.vertices[2].z = rotatedTriangleZX.vertices[2].z + 6.0f;
+			translatedTriangle.vertices[0].z = rotatedTriangleZX.vertices[0].z + 4.0f;// translate it from camera position;
+			translatedTriangle.vertices[1].z = rotatedTriangleZX.vertices[1].z + 4.0f;
+			translatedTriangle.vertices[2].z = rotatedTriangleZX.vertices[2].z + 4.0f;
 
 			vector3f normal, line1, line2;//normal of triangle
 			line1.x = translatedTriangle.vertices[1].x - translatedTriangle.vertices[0].x;
@@ -178,21 +183,38 @@ int main()
 				triangleProjection.vertices[2].x *= 0.5f * (float)screenWidth;
 				triangleProjection.vertices[2].y *= 0.5f *(float)screenHeight;
 
-				float ldp = normal.x*lightDirection.x + normal.y * lightDirection.y + normal.z * lightDirection.z;
-				ldp *= lightIntancity;
-				if (ldp < 0) ldp = 0;
-				ldp += 0.10;// ambient light;
+				triangleProjection.color = normal.x*lightDirection.x + normal.y * lightDirection.y + normal.z * lightDirection.z;
+				triangleProjection.color *= lightIntancity;
+				if (triangleProjection.color < 0) triangleProjection.color = 0;
+				triangleProjection.color += 1.0f/15.0f;// ambient light;
+				
 
-
-				FillTriangle(triangleProjection.vertices[0].x, triangleProjection.vertices[0].y,
-					triangleProjection.vertices[1].x, triangleProjection.vertices[1].y,
-					triangleProjection.vertices[2].x, triangleProjection.vertices[2].y,
-					IntanceTo10Levels(ldp), 0x000f);
-				/*DrawTriangle(triangleProjection.vertices[0].x, triangleProjection.vertices[0].y,
-					triangleProjection.vertices[1].x, triangleProjection.vertices[1].y,
-					triangleProjection.vertices[2].x, triangleProjection.vertices[2].y,
-					' ', 0x000f);*/
+				trianglesToRaster.push_back(triangleProjection);
 			}
+		}
+
+		sort(trianglesToRaster.begin(), trianglesToRaster.end(), [](triangle &t1, triangle &t2)
+		{
+			float midDepth1 = (t1.vertices[0].z + t1.vertices[1].z + t1.vertices[2].z) / 3.0f;
+			float midDepth2 = (t2.vertices[0].z + t2.vertices[1].z + t2.vertices[2].z) / 3.0f;
+			return midDepth1 > midDepth2;
+		});
+
+		for (triangle &triangleProjection : trianglesToRaster)
+		{
+			CHAR_INFO c = IntanceTo14Levels((float)triangleProjection.color);
+		
+
+			FillTriangle(triangleProjection.vertices[0].x, triangleProjection.vertices[0].y,
+				triangleProjection.vertices[1].x, triangleProjection.vertices[1].y,
+				triangleProjection.vertices[2].x, triangleProjection.vertices[2].y,
+				c.Char.UnicodeChar, c.Attributes);
+
+			/*CHAR_INFO ci = IntanceTo14Levels((float)triangleProjection.color - (1.0f / 9.0f));
+			DrawTriangle(triangleProjection.vertices[0].x, triangleProjection.vertices[0].y,
+				triangleProjection.vertices[1].x, triangleProjection.vertices[1].y,
+				triangleProjection.vertices[2].x, triangleProjection.vertices[2].y,
+				ci.Char.UnicodeChar, ci.Attributes);*/
 		}
 
 		/*for (int i = 0; i < 29; i++)

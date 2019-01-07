@@ -235,18 +235,100 @@ short IntanceTo10Levels(float intance)
 {
 	short c;
 
-	if (intance < 0.1) c = ' ';
+	if (intance < 0.1) c = ' ';//0% (no block)
 	else  if (intance < 0.2) c = '.';
 	else if (intance < 0.3) c = ':';
 	else if (intance < 0.4) c = '!';
-	else if (intance < 0.5) c = 0x2591;
-	else if (intance < 0.6) c = 0x2573;
+	else if (intance < 0.5) c = 0x2591;//25% block
+	else if (intance < 0.6) c = 0x2573;//like X
 	else if (intance < 0.7) c = '@';
-	else if (intance < 0.8) c = 0x2592;
-	else if (intance < 0.9) c = 0x2593;
-	else  c = 0x2588;
+	else if (intance < 0.8) c = 0x2592;//50% block
+	else if (intance < 0.9) c = 0x2593;//75% block
+	else  c = 0x2588;//100% block
 	return c;
 }
+
+CHAR_INFO IntanceTo14Levels(float _intance)
+{
+	if (_intance > 1.0f) _intance = 1.0f;
+	int intance = _intance * 18.0f;
+	short bg_col, fg_col;
+	wchar_t symbol;
+
+	switch (intance)
+	{
+	case 0: bg_col = 0x0000; fg_col = 0x0000; symbol = 0x2588; break;
+
+	case 1: bg_col = 0x0000; fg_col = 0x0008; symbol = '.'; break;
+	case 2: bg_col = 0x0000; fg_col = 0x0008; symbol = ':'; break;
+	case 3: bg_col = 0x0000; fg_col = 0x0008; symbol = '!'; break;
+
+	case 4: bg_col = 0x0000; fg_col = 0x0008; symbol = 0x2591; break;
+
+	case 5: bg_col = 0x0000; fg_col = 0x0008; symbol = 0x2573; break;//x
+	case 6: bg_col = 0x0000; fg_col = 0x0008; symbol = '@'; break;
+
+	case 7: bg_col = 0x0000; fg_col = 0x0008; symbol = 0x2592; break;
+	case 8: bg_col = 0x0000; fg_col = 0x0008; symbol = 0x2593; break;
+	case 9: bg_col = 0x0000; fg_col = 0x0008; symbol = 0x2588; break;
+
+	case 10: bg_col = 0x0080; fg_col = 0x0007; symbol = 0x2591; break;
+	case 11: bg_col = 0x0080; fg_col = 0x0007; symbol = 0x2592; break;
+	case 12: bg_col = 0x0080; fg_col = 0x0007; symbol = 0x2593; break;
+	case 13: bg_col = 0x0080; fg_col = 0x0007; symbol = 0x2588; break;
+
+	case 14: bg_col = 0x0070; fg_col = 0x000f; symbol = 0x2591; break;
+	case 15: bg_col = 0x0070; fg_col = 0x000f; symbol = 0x2592; break;
+	case 16: bg_col = 0x0070; fg_col = 0x000f; symbol = 0x2593; break;
+	case 17: bg_col = 0x0070; fg_col = 0x000f; symbol = 0x2588; break;
+
+	case 18: bg_col = 0x0070; fg_col = 0x000f; symbol = 0x2588; break;
+	//case 19: bg_col = 0x0070; fg_col = 0x000f; symbol = 0x2588; break;
+	default: bg_col = 0x0000; fg_col = 0x0000; symbol = 0x2588;
+	}
+	CHAR_INFO c;
+	c.Attributes = bg_col | fg_col;
+	c.Char.UnicodeChar = symbol;
+	return c;
+}
+
+CHAR_INFO IntanceTo13Levels(float _intance)
+{
+	if (_intance > 1.0f) _intance = 1.0f;
+	int intance = _intance*13.0f;
+	short bg_col, fg_col;
+	wchar_t symbol;
+
+	switch (intance)
+	{
+	case 0: bg_col = 0x0000; fg_col = 0x0000; symbol = 0x2588; break;
+
+	case 1: bg_col = 0x0000; fg_col = 0x0008; symbol = 0x2591; break;
+	case 2: bg_col = 0x0000; fg_col = 0x0008; symbol = 0x2592; break;
+	case 3: bg_col = 0x0000; fg_col = 0x0008; symbol = 0x2593; break;
+	case 4: bg_col = 0x0000; fg_col = 0x0008; symbol = 0x2588; break;
+
+	case 5: bg_col = 0x0080; fg_col = 0x0007; symbol = 0x2591; break;
+	case 6: bg_col = 0x0080; fg_col = 0x0007; symbol = 0x2592; break;
+	case 7: bg_col = 0x0080; fg_col = 0x0007; symbol = 0x2593; break;
+	case 8: bg_col = 0x0080; fg_col = 0x0007; symbol = 0x2588; break;
+
+	case 9: bg_col = 0x0070; fg_col = 0x000f; symbol = 0x2591; break;
+	case 10: bg_col = 0x0070; fg_col = 0x000f; symbol = 0x2592; break;
+	case 11: bg_col = 0x0070; fg_col = 0x000f; symbol = 0x2593; break;
+	case 12: bg_col = 0x0070; fg_col = 0x000f; symbol = 0x2588; break;
+
+	case 13: bg_col = 0x0070; fg_col = 0x000f; symbol = 0x2588; break;
+	//case 14: bg_col = 0x0070; fg_col = 0x000f; symbol = 0x2588; break;
+	default: bg_col = 0x0000; fg_col = 0x0000; symbol = 0x2588;
+	}
+	CHAR_INFO c;
+	c.Attributes = bg_col | fg_col;
+	c.Char.UnicodeChar = symbol;
+	return c;
+}
+
+
 
 
 void PushBuffer()
