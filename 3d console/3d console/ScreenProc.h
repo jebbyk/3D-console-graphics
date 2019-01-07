@@ -22,8 +22,9 @@ short *c;
 long trisCount;
 
 
-void SetScreen(short h, short w, short cs )
+void SetScreen(short h, short w, short cs)
 {
+
 	screenWidth = w;
 	screenHeight = h;
 	hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -33,8 +34,11 @@ void SetScreen(short h, short w, short cs )
 	SetConsoleWindowInfo(hStdOut, TRUE, &writeRegion);
 
 	COORD bufferSize = { w,h };
+
 	SetConsoleScreenBufferSize(hStdOut, bufferSize);//setting up char buffer of console
+
 	SetConsoleActiveScreenBuffer(hStdOut);
+
 
 	//setting up font
 	CONSOLE_FONT_INFOEX fontInfo;
@@ -49,13 +53,16 @@ void SetScreen(short h, short w, short cs )
 
 	SetConsoleMode(hStdOut, ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT);
 	//setting up window position and size
-	SetWindowPos(hWindow, HWND_TOP, 0, 0, (int)w*cs+16, (int)h*cs+39, NULL);
-	writeRegion = {0, 0, (short)screenWidth - 1, (short)screenHeight - 1 };
+	SetWindowPos(hWindow, HWND_TOP, 0, 0, (int)w*cs + 16, (int)h*cs + 39, NULL);
+	writeRegion = { 0, 0, (short)screenWidth - 1, (short)screenHeight - 1 };
 	SetConsoleWindowInfo(hStdOut, TRUE, &writeRegion);
 
 	lpBuffer = new CHAR_INFO[screenWidth * screenHeight]; // additional buffer for fasest draving;
 	memset(lpBuffer, 0, sizeof(CHAR_INFO)*screenWidth*screenHeight);
-	
+
+
+
+
 	COORD cursorPos;
 	cursorPos.X = 0;
 	cursorPos.Y = 0;
@@ -67,7 +74,7 @@ void DrawPoint(short x, short y, short c, short color)
 	//put a pixel in a buffer;
 	if (x >= 0 && x < (short)screenWidth  && y >= 0 && y < (short)screenHeight)
 	{
-		lpBuffer[y*(short)screenWidth+ x].Char.UnicodeChar = c;
+		lpBuffer[y*(short)screenWidth + x].Char.UnicodeChar = c;
 		lpBuffer[y*screenWidth + x].Attributes = color;
 	}
 }
@@ -127,7 +134,7 @@ void DrawTriangle(short x1, short y1, short x2, short y2, short x3, short y3, sh
 
 void FillTriangle(short x1, short y1, short x2, short y2, short x3, short y3, short c, short color)
 {
-	if(y1 > y2)
+	if (y1 > y2)
 	{
 		short t = y1; y1 = y2; y2 = t;
 		t = x1; x1 = x2; x2 = t;
@@ -144,7 +151,7 @@ void FillTriangle(short x1, short y1, short x2, short y2, short x3, short y3, sh
 	}
 
 	short triangleHeight = y3 - y1;
-	
+
 	if (triangleHeight > 0)//if it's not a line;
 	{
 		float pxA, pxB;
@@ -170,7 +177,7 @@ void FillTriangle(short x1, short y1, short x2, short y2, short x3, short y3, sh
 				}
 			}
 		}
-		segmentHeight = y3 - y2 ;
+		segmentHeight = y3 - y2;
 		if (segmentHeight > 0)
 		{
 			float t;
@@ -182,7 +189,7 @@ void FillTriangle(short x1, short y1, short x2, short y2, short x3, short y3, sh
 				pxA = x1 + (float)(x3 - x1)*pxA;
 				pxB = x2 + (float)(x3 - x2)*pxB;
 				if (pxA > pxB) {
-					 t = pxA; pxA = pxB; pxB = t;
+					t = pxA; pxA = pxB; pxB = t;
 				}
 				for (i = pxA; i <= pxB; i++)
 				{
@@ -213,7 +220,7 @@ short IntanceTo5Levels(float intancity)//converts value between 0 & 1 to specifi
 		else {
 			if (intancity < 0.6f) c = 0x2592;
 			else {
-				if(intancity < 0.8f)c = 0x2593;
+				if (intancity < 0.8f)c = 0x2593;
 				else {
 					c = 0x2588;
 				}
@@ -229,7 +236,7 @@ short IntanceTo10Levels(float intance)
 	short c;
 
 	if (intance < 0.1) c = ' ';
-	else  if (intance < 0.2) c = '.'; 
+	else  if (intance < 0.2) c = '.';
 	else if (intance < 0.3) c = ':';
 	else if (intance < 0.4) c = '!';
 	else if (intance < 0.5) c = 0x2591;

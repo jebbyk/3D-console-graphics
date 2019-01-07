@@ -5,13 +5,13 @@ c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\scree
 c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\screenproc.h(119): warning C4244: =: преобразование "float" в "int", возможна потеря данных
 c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\screenproc.h(174): warning C4244: =: преобразование "float" в "short", возможна потеря данных
 c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\screenproc.h(194): warning C4244: =: преобразование "float" в "short", возможна потеря данных
-c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\3d console.cpp(126): warning C4305: +=: усечение из "double" в "float"
-c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\3d console.cpp(131): warning C4244: аргумент: преобразование "float" в "short", возможна потеря данных
-c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\3d console.cpp(130): warning C4244: аргумент: преобразование "float" в "short", возможна потеря данных
-c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\3d console.cpp(129): warning C4244: аргумент: преобразование "float" в "short", возможна потеря данных
+c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\3d console.cpp(184): warning C4305: +=: усечение из "double" в "float"
+c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\3d console.cpp(189): warning C4244: аргумент: преобразование "float" в "short", возможна потеря данных
+c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\3d console.cpp(188): warning C4244: аргумент: преобразование "float" в "short", возможна потеря данных
+c:\users\jebbyk\documents\github\3d-console-graphics\3d console\3d console\3d console.cpp(187): warning C4244: аргумент: преобразование "float" в "short", возможна потеря данных
   Создание кода
-  15 of 357 functions ( 4.2%) were compiled, the rest were copied from previous compilation.
-    4 functions were new in current compilation
-    4 functions had inline decision re-evaluated but remain unchanged
+  2 of 328 functions ( 0.6%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
   3d console.vcxproj -> C:\Users\Jebbyk\Documents\GitHub\3D-console-graphics\3D console\Release\3d console.exe
