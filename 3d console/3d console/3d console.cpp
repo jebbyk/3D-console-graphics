@@ -9,6 +9,7 @@
 #include "Geometry.h"
 #include <chrono>
 #include <math.h>
+#include "Input.h"
 
 
 int main()
@@ -28,21 +29,24 @@ int main()
 	long framesCount = 0;
 
 	mesh model;
-	model.LoadFromObjFile("SpaceFighter3.obj");
+	model.LoadFromObjFile("groundLow.obj");
 
 	vector3f lightDirection = { 0.8f, -0.8f, -1.0f };//light//////////////////////////////////////
 	float lightL = sqrtf(lightDirection.x * lightDirection.x + lightDirection.y*lightDirection.y + lightDirection.z* lightDirection.z);
 	lightDirection.x /= lightL; lightDirection.y /= lightL;  lightDirection.z /= lightL;
 
 	vector3f cameraVector = { 0,0,0 };
+	vector3f LookDir;
+	float yaw = 0, pitch = 0;
 
 	matrix4x4 projectionMatrix;//screen projection matrix;
 	projectionMatrix = ScreenProjectionMatrix(60.0, (float)screenHeight / (float)screenWidth, 0.1f, 1000.0f);
 
-	float angle = 0; // just for testing rotating meshes
+	float Xangle = 0; // just for testing rotating meshes
+	float Zangle = 0;
 
 	matrix4x4 translationMatrix;
-	translationMatrix = MatrixTranslation(0.0f, 0.0f, 4.0f);
+	translationMatrix = MatrixTranslation(0.0f, 0.0f, 8.0f);
 	vector3f sOffsetVector = { 1,1,0 };
 	
 
@@ -56,28 +60,29 @@ int main()
 		sessionTime += frameTime;
 		averageFrameTimes = sessionTime / framesCount;
 
-		float offset = sin(sessionTime);// add some movement to the light source
-		float offset2 = cos(sessionTime * 2);
-		float offset3 = -sin(sessionTime * 2);
-		lightDirection.x = offset;
-		lightDirection.y = offset2;
-		lightDirection.z = offset3;
+		UpdateInputs();
+
 		float lightIntancity = 1;
 
 		matrix4x4 matRotZ, matRotX;
-		angle += 1.0f * frameTime;
-		matRotZ = MatrixRotationZ(angle*0.5f);
-		matRotX = MatrixRotationX(angle);
+		matRotZ = MatrixRotationZ(Zangle);
+		matRotX = MatrixRotationX(Xangle);
 
 		matrix4x4 worldMatrix;
 		worldMatrix = MatrixIdentity();
 		worldMatrix = MatrixMultMatrix(matRotZ, matRotX);
 		worldMatrix = MatrixMultMatrix(worldMatrix, translationMatrix);
+		vector3f vUp = { 0,1,0 };
+		vector3f targetVector = { 0,0,1 };
+		matrix4x4 cameraRotMatrix = MatrixRotationY(yaw);
+		LookDir = MatrixMultVector3f(cameraRotMatrix, targetVector);
+		targetVector = cameraVector + LookDir;
+
+		matrix4x4 cameraMatrix = MatrixPointAt(cameraVector, targetVector, vUp); 
+		matrix4x4 viewMatrix = MatrixQuickInverse(cameraMatrix);
 
 		//color testing;
-		for (int i = 0; i < screenHeight; i++)
-		{
-			for (int j = 0; j < screenWidth; j++)
+			/*for (int i = 0; i < screenHeight; i++)
 			{
 				DrawPoint(j, i, IntanceTo10Levels((float)i / screenHeight), 0x000f);
 			}
@@ -85,11 +90,15 @@ int main()
 
 		for (triangle t : model.triangles)
 		{
-			triangle triangleProjection, triangleProcessed;
+			triangle triangleProjection, triangleProcessed, triangleViewed;
 
 			triangleProcessed.vertices[0] = MatrixMultVector3f(worldMatrix, t.vertices[0]);
 			triangleProcessed.vertices[1] = MatrixMultVector3f(worldMatrix, t.vertices[1]);
 			triangleProcessed.vertices[2] = MatrixMultVector3f(worldMatrix, t.vertices[2]);
+
+			triangleViewed.vertices[0] = MatrixMultVector3f(viewMatrix, triangleProcessed.vertices[0]);
+			triangleViewed.vertices[1] = MatrixMultVector3f(viewMatrix, triangleProcessed.vertices[1]);
+			triangleViewed.vertices[2] = MatrixMultVector3f(viewMatrix, triangleProcessed.vertices[2]);
 
 			vector3f normal, line1, line2;//normal of triangle
 			line1 = triangleProcessed.vertices[1] - triangleProcessed.vertices[0];
@@ -101,9 +110,9 @@ int main()
 			if(normal.dotProd(vCamRay) < 0.0f)
 			{
 				//projection process;
-				triangleProjection.vertices[0] = MatrixMultVector3f(projectionMatrix, triangleProcessed.vertices[0]);
-				triangleProjection.vertices[1] = MatrixMultVector3f(projectionMatrix, triangleProcessed.vertices[1]);
-				triangleProjection.vertices[2] = MatrixMultVector3f(projectionMatrix, triangleProcessed.vertices[2]);
+				triangleProjection.vertices[0] = MatrixMultVector3f(projectionMatrix, triangleViewed.vertices[0]);
+				triangleProjection.vertices[1] = MatrixMultVector3f(projectionMatrix, triangleViewed.vertices[1]);
+				triangleProjection.vertices[2] = MatrixMultVector3f(projectionMatrix, triangleViewed.vertices[2]);
 				//make none orthogonal view
 				triangleProjection.vertices[0] /= triangleProjection.vertices[0].w;
 				triangleProjection.vertices[1] /= triangleProjection.vertices[1].w;

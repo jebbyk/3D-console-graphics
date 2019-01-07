@@ -47,7 +47,14 @@ struct vector3f {
 		return{ y*vB.z - z * vB.y, z*vB.x - x * vB.z, x*vB.y - y * vB.x };
 	}
 
-	vector3f& operator += (vector3f& vB)
+	/*vector3f& operator += (vector3f& vB)
+	{
+		this->x += vB.x;
+		this->y += vB.y;
+		this->z += vB.z;
+		return *this;
+	}*/
+	vector3f operator += (vector3f vB)
 	{
 		this->x += vB.x;
 		this->y += vB.y;
@@ -56,6 +63,13 @@ struct vector3f {
 	}
 
 	vector3f& operator -= (vector3f& vb)
+	{
+		this->x -= vb.x;
+		this->y -= vb.y;
+		this->z -= vb.z;
+		return *this;
+	}
+	vector3f operator -= (vector3f vb)
 	{
 		this->x -= vb.x;
 		this->y -= vb.y;
@@ -96,11 +110,27 @@ struct vector3f {
 		vector3f nv = { this->x*vb.x, this->y*vb.y, this->z*vb.z };
 		return nv;
 	}
+	vector3f operator*(float vb)
+	{
+		vector3f nv = { this->x*vb, this->y*vb, this->z*vb };
+		return nv;
+	}
 
 	vector3f operator/(vector3f& vb)
 	{
 		vector3f nv = { this->x / vb.x, this->y / vb.y, this->z / vb.z };
 		return nv;
+	}
+};
+struct vector2s {
+	short x, y;
+	vector2s()
+	{
+		x = y = 0;
+	}
+	vector2s(short _x, short _y)
+	{
+		x = _x; y = _y;
 	}
 };
 struct triangle{
@@ -185,6 +215,42 @@ matrix4x4 MatrixRotationX(float a)
 	nm.matrix[2][2] = cosf(a);
 	nm.matrix[3][3] = 1.0f;
 	return nm;
+}
+
+
+matrix4x4 MatrixPointAt(vector3f &pos, vector3f &target, vector3f &up)
+{
+	//forward
+	vector3f newForward = target - pos;
+	newForward = newForward.normalized();
+
+	//Up
+	vector3f a = newForward*up.dotProd(newForward);
+	vector3f newUp = up - a;
+	newUp = newUp.normalized();
+
+	//Right
+	vector3f newRight = newUp.coross(newForward);
+
+	matrix4x4 m;
+	m.matrix[0][0] = newRight.x; m.matrix[0][1] = newRight.y; m.matrix[0][2] = newRight.z; m.matrix[0][3] = 0;
+	m.matrix[1][0] = newUp.x; m.matrix[1][1] = newUp.y; m.matrix[1][2] = newUp.z; m.matrix[1][3] = 0;
+	m.matrix[2][0] = newForward.x; m.matrix[2][1] = newForward.y; m.matrix[2][2] = newForward.z; m.matrix[2][3] = 0;
+	m.matrix[3][0] = pos.x; m.matrix[3][1] = pos.y; m.matrix[3][2] = pos.z; m.matrix[3][3] = 1;
+	return m;
+}
+
+matrix4x4 MatrixQuickInverse(matrix4x4 &iM)//for rotation/translation
+{
+	matrix4x4 m;
+	m.matrix[0][0] = iM.matrix[0][0]; m.matrix[0][1] = iM.matrix[1][0]; m.matrix[0][2] = iM.matrix[2][0]; m.matrix[0][3] = 0.0f;
+	m.matrix[1][0] = iM.matrix[0][1]; m.matrix[1][1] = iM.matrix[1][1]; m.matrix[1][2] = iM.matrix[2][1]; m.matrix[1][3] = 0.0f;
+	m.matrix[2][0] = iM.matrix[0][2]; m.matrix[2][1] = iM.matrix[1][2]; m.matrix[2][2] = iM.matrix[2][2]; m.matrix[2][3] = 0.0f;
+	m.matrix[3][0] = -(iM.matrix[3][0] * m.matrix[0][0] + iM.matrix[3][1] * m.matrix[1][0] + iM.matrix[3][2] * iM.matrix[2][0]);
+	m.matrix[3][1] = -(iM.matrix[3][0] * m.matrix[0][1] + iM.matrix[3][1] * m.matrix[1][1] + iM.matrix[3][2] * iM.matrix[2][1]);
+	m.matrix[3][2] = -(iM.matrix[3][0] * m.matrix[0][2] + iM.matrix[3][1] * m.matrix[1][2] + iM.matrix[3][2] * iM.matrix[2][2]);
+	m.matrix[3][3] = 1.0f;
+	return m;
 }
 
 matrix4x4 MatrixTranslation(float x, float y, float z)
